@@ -1,19 +1,25 @@
-# {{ name }}
 
-> {{ description }}
 
-## Build Setup
+# 安装方法
 
-``` bash
-# install dependencies
-$ npm install # Or yarn install
-
-# serve with hot reload at localhost:3000
-$ npm run dev
-
-# build for production and launch server
-$ npm start
 ```
+npm install
+npm install -g nuxtjs
+npm install -g backpack-core
+```
+
+# 开发
+
+```
+npm run dev
+```
+
+# 部署
+```
+nuxt build
+nuxt start
+```
+
 
 For detailed explanation on how things work, checkout the [Nuxt.js docs](https://github.com/nuxt/nuxt.js).
 
