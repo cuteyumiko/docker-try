@@ -1,0 +1,1794 @@
+<template>
+  <div class="detail-box">
+    <div class="backtop" @click="backtop"></div>
+    <hdp-top :detailCount="detailCount"></hdp-top>
+    <hdp-search-all></hdp-search-all>
+    <hdp-nav :navCurrentIndex="navCurrentIndex"></hdp-nav>
+    <div class="nav-line"></div>
+    <div class="detail">
+      <div class="warp-pc">
+        <!--位置标题布局start-->
+        <div class="floor-title">
+          <div class="floor-title-word">首页</div>
+          <!-- <img src="../../assets/images/img/Nextdirection.png" alt=""> -->
+          <div class="floor-title-word">家居用品</div>
+          <!-- <img src="../../assets/images/img/Nextdirection.png" alt=""> -->
+          <div class="floor-title-word">灯具</div>
+          <!-- <img src="../../assets/images/img/Nextdirection.png" alt=""> -->
+          <div class="current-title">北欧极简直杆台灯</div>
+        </div>
+        <!--位置标题布局end-->
+        <!--商品内容布局start-->
+        <div class="goods-box">
+          <div class="goods-box-left" >
+            <img :src="currentImg">
+          </div>
+          <div class="goods-box-left-up" style="display: none" id="goodsBoxLeftUp">
+            <img :src="currentImg" alt="" >
+          </div>
+          <div class="goods-box-right">
+            <div class="goods-right-left" ref="smallimg">
+              <div class="goods-small-box" @click="selectSmallImg($event)" v-for="item in pics">
+                <img :src="item">
+              </div>
+            </div>
+            <div class="goods-right-right">
+              <div class="goods-rright-name">
+
+                <!--bugbugbug-->
+                <div class="goods-rright-title">{{goodDetail.name}}</div>
+              </div>
+              <div class="goods-rright-sale-box">
+                <div class="sale-price">
+                  <div class="sale-price-title">售&nbsp;&nbsp;&nbsp;&nbsp;价</div>
+                  <div class="sale-price-count">
+                    <div class='price-logo'>￥</div>
+                    <div class='price-shumu'>{{pcSalesPrice}}</div>
+                  </div>
+                </div>
+                <div class="sale-price">
+                  <div class="sale-price-title">市场价</div>
+                  <div class="sale-price-count">
+                    <div class='markit-logo'>￥</div>
+                    <div class='markit-shumu'>{{MarketPrice}}</div>
+                    <!--<div class="sale-decive"></div>-->
+                  </div>
+                </div>
+                <div class="sale-price" v-if="promotionName">
+                  <div class="sale-price-title">促&nbsp;&nbsp;&nbsp;&nbsp;销</div>
+                  <div class="promotion-words" >{{promotionName}}</div>
+                </div>
+                <div class="sale-num">
+                  <div class="sale-words">累计销量</div>
+                  <!--bugbugbug-->
+                  <div class="sale-count">{{goodDetail.salesNum}}+</div>
+                </div>
+              </div>
+              <div style="clear:both"></div>
+              <div class="specifications-box" v-if="showGuiGe">
+                <div class="specifications-title">规&nbsp;&nbsp;格</div>
+                <div class="specifications-img" ref="specifications">
+                  <div style="position: relative;display: inline-block" 
+                        v-for="(item,index) in guige"  :key="index"
+                        @click="selectedColor($event,index)">
+                    <!--<img src="../assets/img/selectedcolor.png"  alt="" class="selectedImg" >-->
+                    <span class="guige-span">{{item.Standard}}</span>
+                    <span>{{item.salePrice}}</span>
+                  </div>
+                </div>
+              </div>
+              <div style="clear:both"></div>
+              <div class="specifications-box-next" v-if="goodDetail.isTrade==1">
+                <div class="specifications-title-next">数&nbsp;&nbsp;量</div>
+                <div class="count-choose">
+                  <div class="reduce" @click="reduceCount">-</div>
+                  <input type="text" v-model="count" class="last-count"  ref="lastCount" @blur="leaveInput" >
+                  <div class="plus" @click="plusCount">+</div>
+                </div>
+
+              </div>
+              <div style="clear:both"></div>
+              <div style="width:100% ;text-align: left;" >
+                <div :href="goToOrder"  target="_blank" class="sub-btn" @click="goToPreOrder" v-if="goodDetail.isTrade==1">立即购买</div>
+                <div class="sub-btn2"  @click="addShopCar" v-if="goodDetail.isTrade==1">加入采购单</div>
+                <div class="sub-btn3"  v-if="goodDetail.isTrade==0">已下架</div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <!--商品内容布局end-->
+        <!--详情图文布局start-->
+        <div class="goods-detail-box">
+          <div class="details-nav-box">
+            <div class="details-nav nav-active" @click="clickNav($event)">详情</div>
+            <div class="details-nav" @click="clickNav($event)" v-if="showEvaluateTitle">评价({{total}})</div>
+          </div>
+          <!--商品参数start-->
+          <div class="commodity-parameter" v-if="noPicParams">
+            <div class="parameter-line" v-for="item in proParameters">
+              <span class="parameter-line-name">{{item.name}}</span>
+              <span v-if="!item.typeid" class="parameter-line-value">{{ item.userdata }}</span>
+              <span  v-if="item.typeid" v-for="sub in item.detail" class="parameter-line-value">
+                        <span v-if="sub.checked =='checked'">
+                            {{ sub.detail }}
+                        </span>
+                    </span>
+            </div>
+          </div>
+          <!--商品参数end-->
+          <!--详情部分布局start-->
+          <div v-html=PicTextDetail class="pic-goods-detail" v-if="showDetail"></div>
+          <!--详情部分布局end-->
+
+          <!--评价页面布局start-->
+          <div class="evaluate-box" v-if="showEvaluate">
+            <div class="evaluate-header">
+              <div class="bigyaun" @click="clickEllipse('left')">
+                <!-- <img src="../../assets/images/img/ellipse.png" class="ellipse" v-if="showEllipseLeft"> -->
+              </div>
+              <div class="all-count ellipse-active" ref="EllipseLeft">全部（{{total}}）</div>
+              <div class="bigyaun bigyaun-next" @click="clickEllipse('right')" >
+                <!-- <img src="../../assets/images/img/ellipse.png" class="ellipse" v-if="showEllipseRight"> -->
+              </div>
+              <div class="all-count-next" ref="EllipseRight">有图（{{totalImg}}）</div>
+            </div>
+            <!--全部评价start-->
+            <div class="evaluate-body" v-for="item in comments" v-if="allEvaluate">
+              <div class="evaluate-left">
+                <img :src="item.userImg" class="user-logo">
+                <div class="userName">{{item.nickname}}</div>
+              </div>
+              <div class="evaluate-right">
+                <div class="evaluate-title">{{item.commentContent}}</div>
+                <div class="img-box">
+                  <img :src="itemImg" alt="" v-for="itemImg in item.pics">
+                </div>
+                <div class="evaluate-time">{{item.createTime}}</div>
+              </div>
+            </div>
+            <!--全部评价end-->
+            <!--有图评价start-->
+            <div class="evaluate-body" v-for="item in imgComments" v-if="imgEvaluate">
+              <div class="evaluate-left">
+                <img :src="item.userImg" class="user-logo">
+                <div class="userName">{{item.nickname}}</div>
+              </div>
+              <div class="evaluate-right">
+                <div class="evaluate-title">{{item.commentContent}}</div>
+                <div class="img-box">
+
+                  <img :src="itemImg" alt="" v-for="itemImg in item.pics">
+                </div>
+                <!--<div class="color">颜色：灰色条纹</div>-->
+                <div class="evaluate-time">{{item.createTime}}</div>
+              </div>
+            </div>
+            <!--有图评价end-->
+            <!--分页start-->
+            <div class="searchPaging clearfix" v-if="pageShow">
+              <ul>
+                <li class="crt prevPage" v-if="pages != 1">
+                  <a @click="minus(pages)">&lt; 上一页</a>
+                </li>
+                <li class="prevPage prevColor" v-if="pages == 1">&lt; 上一页</li>
+                <template v-for="index in indexs">
+                  <li :class="{classRenderer:pages === index}">
+                    <a @click="btnClick(index)">{{ index }}</a>
+                  </li>
+                </template>
+                <li v-if="showMoreTail" class="crt">
+                  <img src="../../assets/images/img/searchPage_dian.png" alt="">
+                </li>
+                <li :class="{classRenderer:pages === pageNo}">
+                  <a @click="btnClick(pageNo)" >{{pageNo}}</a>
+                </li>
+                <li class="crt nextPage" v-if="this.pages != this.pageNo">
+                  <a @click="plus(pages)">下一页 &gt;</a>
+                </li>
+                <li class="nextPage prevColor" v-if="this.pages === this.pageNo">下一页 &gt;</li>
+              </ul>
+            </div>
+            <!--分页end-->
+          </div>
+          <!--评价页面布局end-->
+
+        </div>
+        <div class="two_floor">
+          <div class="recommend-title">买家还在看</div>
+          <div class="w1190 hdp_two_wrap" >
+            <ul class="hdp_two_list" id="hdp_two_list">
+
+              <li class="fl" v-for="(item ,index) in firstRecommendGoods" @click="toDtails('firstRecommendGoods',index)">
+                <router-link :to="{path:'/detail',query: {commodityId: item.commodityId}}" target="_blank">
+                <div class="two_img">
+                  <img :src="item.pic" class="hover_img">
+                </div>
+                <div class="two_down">
+                  <p>{{item.name}}</p>
+                  <h3>¥{{item.orderPrice}}</h3>
+                </div>
+                </router-link>
+              </li>
+
+
+            </ul>
+          </div>
+
+        </div>
+        <div style="clear: both"></div>
+
+        <!--详情图文布局end-->
+        <!--立即购买弹框布局start-->
+        <div class="bug-alert" v-if="showBugAlert">
+          <div class="bug-cover"></div>
+          <div class="bug-alert-box">
+            <div class="alert-box-header">微信登录</div>
+            <!-- <img src="../../assets/images/img/close-icon.png" class='close-icon' alt="" @click="closeAlert"> -->
+            <!--<img src="../assets/img/ewm.png" alt="" class="erweima">-->
+            <div id="qrcode" ></div>
+            <div class="words-tishi">扫描二维码立即购买</div>
+          </div>
+        </div>
+        <!--立即购买弹框布局end-->
+      </div>
+      <!--买家还在看部分布局start-->
+
+      <!--买家还在看部分布局end-->
+
+      <hdp-footer-sub></hdp-footer-sub>
+    </div>
+    <hdp-footer></hdp-footer>
+    <div class="bottom-device"></div>
+    <!--加入采购单提示start-->
+    <div class="shop-car-alert" v-if="showSopCarAlert">{{alertMsg}}</div>
+    <!--加入采购单提示end-->
+  </div>
+</template>
+
+<script type="text/ecmascript-6">
+  import hdpFooter from '../../component/component-pc/footer.vue'
+  import hdpTop from '../../component/component-pc/top.vue'
+  import hdpSearchAll from '../../component/component-pc/searchall.vue'
+  import hdpNav from '../../component/component-pc/nav.vue'
+  import hdpFooterSub from '../../component/component-pc/footersub.vue'
+  import Vue from 'vue'
+  import { api_get, api_post } from '../../utils/api.js'
+  import { url_stringfy } from '../../utils/utils.js'
+  export default{
+    data(){
+      return {
+        alertMsg:'',
+        count:1,
+        showBugAlert:false,
+        showEllipseLeft:true,
+        showEllipseRight:false,
+        showEvaluate:false,
+        PicTextDetail:null,
+        showDetail:true,
+        goodDetail: {},
+        pics:null,
+        currentImg:null,
+        recommendGoods:null,
+        promotionActivity:null,
+        firstRecommendGoods:null,
+        commodityId:null,
+        comments:null,
+        showEvaluateTitle:true,
+        total:null,
+        totalImg:null,
+        allEvaluate:true,
+        imgEvaluate:false,
+        imgComments:null,
+        guige:null,
+        selectedGuige:'',
+        showGuiGe:null,
+        //分页
+        pageShow:true,
+        pages:1,
+        pageSize:5,
+        showMorePre: false,
+        showMoreTail: true,
+        showPre:false,
+        pageNo:null,
+//       保存有图评价页数
+        imgPageNum:null,
+//       保存所有评价页数
+        allPageNum:null,
+        MarketPrice:null,
+//              促销活动名称
+        promotionName:null,
+        noPicParams:null,
+        proParameters:[],
+        priceUP:null,
+        pricebottom:null,
+        pcSalesPrice:null,
+        erShowImg:null,
+        navCurrentIndex:'',
+        showSopCarAlert:false,
+        detailCount:'',
+        storeNum:'',
+        fixedArrey:['37847541','37847430','86580062','86579915','86579261','86579869','86579235','86579708','85046553','85046368','85046529','37847591','86579824','85046496','85046638'],
+        goToOrder:'',
+        preOrders: [],
+      }
+    },
+    mounted(){
+      this.getParameters()
+      this.getGoodDetailData()
+      this.getRecommendGood()
+      this.getComment()
+      this.getImgComment()
+      this.getParameters2()
+      this.leaveInput()
+      if (this.$route.query.navCurrentIndex){
+        this.navCurrentIndex=this.$route.query.navCurrentIndex
+      }else{
+        this.navCurrentIndex=window.localStorage.getItem('navCurrentIndex')
+      }
+
+      document.body.scrollTop=0
+     this.detailCount= window.localStorage.getItem('carListLength')
+
+      this.$nextTick(()=>{
+        let _this=this
+        if(_this.$refs.lastCount){
+        let lastCount=_this.$refs.lastCount
+        lastCount.addEventListener('keyup',function(){
+          if (_this.count>_this.storeNum){
+            _this.alertMsg='最多可购买数量'+_this.storeNum
+            _this.showSopCarAlert=true
+            _this.count=_this.storeNum
+            setTimeout(function(){
+              _this.showSopCarAlert=false
+            },2000)
+          }
+        })
+      }
+      })
+      this.goToOrder=HR+'/receiveMsg'
+    },
+    methods:{
+//        回首页
+      backtop:function(){
+        document.body.scrollTop=0;
+      },
+      //点击商品详情小图片
+      selectSmallImg:function(event){
+        this.$nextTick(()=>{
+          let evt = event || window.event;
+          let target = evt.target || evt.srcElement;
+          if (target.tagName=='IMG'){
+            let smallimg=this.$refs.smallimg
+            let ent=smallimg.getElementsByClassName('smallActive')
+            if (ent.length>0){
+              for(let i=0;i<ent.length;i++){
+                ent[i].className=''
+              }
+            }
+            if (target.className!='smallActive'){
+              target.className='smallActive'
+            }else{
+              target.className=''
+            }
+            this.currentImg=target.src
+          }
+        })
+      },
+//      失去焦点
+      leaveInput:function(){
+          if (this.count==''){
+            this.count=1
+          }else{
+            this.count=parseInt(this.count)
+          }
+      },
+      // 减少购买数量
+      reduceCount:function () {
+        if (this.count>=2){
+          this.count--
+        }else{
+          let _this=this
+          _this.alertMsg='最少要购买一件哦~'
+          _this.showSopCarAlert=true
+          setTimeout(function(){
+            _this.showSopCarAlert=false
+          },2000)
+        }
+      },
+//       怎加购买数量
+      plusCount:function(){
+          let _this=this
+          if ( _this.count<_this.storeNum){
+            _this.count++
+          }else{
+            _this.alertMsg='最多可购买数量'+_this.storeNum
+            _this.showSopCarAlert=true
+            _this.count=_this.storeNum
+            setTimeout(function(){
+              _this.showSopCarAlert=false
+            },2000)
+          }
+          return
+
+      },
+      // 关闭立即购买二维码弹框
+      closeAlert:function(){
+        this.showBugAlert=false
+      },
+      //点击立即购买（生成二维码）
+//      goBug:function(){
+//          if(this.count==''){
+//            this.count=1
+//          }
+//        this.showBugAlert=true
+//        let commodityId=null
+//        if (this.$route.query.commodityId){
+//          commodityId=this.$route.query.commodityId
+//        }else{
+//          commodityId=window.localStorage.setItem('commodityId')
+//        }
+//        this.$nextTick(()=>{
+//          $("#qrcode").qrcode({
+//            width:230,
+//            height:230,
+//            text:"http://m.haodanpin.com/#/good_detail?loginBack=011&commodityId="+commodityId+'&found_index=1'
+//          })
+//        })
+//      },
+      //点击详情与评价nav
+      clickNav:function(event){
+        this.$nextTick(()=>{
+          let evt = event || window.event;
+          let target = evt.target || evt.srcElement;
+          if (target.innerHTML=='详情'){
+            this.showEvaluate=false
+            this.showDetail=true
+            this.noPicParams=true
+
+          }else{
+            this.showEvaluate=true
+            this.showDetail=false
+            this.noPicParams=false
+          }
+          let ent=document.getElementsByClassName('nav-active')
+          if (ent.length!=0){
+            for(let i=0;i<ent.length;i++){
+              ent[i].className='details-nav'
+            }
+          }
+          if (target.className!='details-nav nav-active'){
+            target.className='details-nav nav-active'
+          }
+        })
+
+
+      },
+      //点击评价border-raios
+      clickEllipse:function(a){
+        this.$nextTick(()=>{
+          this.pages=1
+          let EllipseRight=this.$refs.EllipseRight
+          let EllipseLeft=this.$refs.EllipseLeft
+          if (a=='right'){
+            if (this.showEllipseRight!=true){
+              this.showEllipseRight=true
+              this.showEllipseLeft=false
+              this.imgEvaluate=true
+              this.allEvaluate=false
+              this.pageNo=this.imgPageNum
+              EllipseRight.className='all-count-next ellipse-active'
+              EllipseLeft.className='all-count'
+              if ( this.totalImg==0){
+                this.pageShow=false
+              }
+            }
+          }else{
+            if (this.showEllipseLeft!=true){
+              this.showEllipseLeft=true
+              this.showEllipseRight=false
+              EllipseLeft.className='all-count ellipse-active'
+              EllipseRight.className='all-count-next'
+              this.imgEvaluate=false
+              this.allEvaluate=true
+              this.pageNo=this.allPageNum
+              if (this.total!=0){
+                this.pageShow=true
+              }
+
+
+            }
+          }
+        })
+
+      },
+      //获取商品详情的数据
+      getGoodDetailData(){
+        let url = HOST_HDPCOMMODITY + '/commodityFront/getCommodityDetail'
+        let commodityId=null
+        if (this.$route.query.commodityId){
+          commodityId=this.$route.query.commodityId
+        }else{
+          commodityId=window.localStorage.setItem('commodityId')
+        }
+        if (commodityId!=''){
+          this.$resource(url).get({
+            commodityId: commodityId,
+            version: 'v1.2'
+          }).then((response) => {
+            if (response.status == 200) {
+              this.goodDetail = response.body
+              this.pcSalesPrice=this.goodDetail.salesPrice
+              if(this.goodDetail.salesPrice.substring(0, this.goodDetail.salesPrice.lastIndexOf('-') )!=''){
+                this.priceUP=this.goodDetail.salesPrice.substring(0, this.goodDetail.salesPrice.lastIndexOf('-') )
+                this.pricebottom=this.goodDetail.salesPrice.substring(this.goodDetail.salesPrice.lastIndexOf('-')+1, this.goodDetail.salesPrice.length+1)
+                let up=parseFloat(this.priceUP)+parseFloat(this.priceUP/100*50)
+                let bottom=parseFloat(this.pricebottom)+parseFloat(this.pricebottom/100*50)
+                  this.MarketPrice=up.toFixed(2)+'-'+bottom.toFixed(2)
+
+              }else{
+                  let commodityId=this.$route.query.commodityId
+                commodityId=this.$route.query.commodityId
+                if(this.fixedArrey.indexOf(commodityId)!=-1&&commodityId=='37847541'){
+                  this.MarketPrice=688
+                }else if(this.fixedArrey.indexOf(commodityId)!=-1&&commodityId=='37847430'){
+                  this.MarketPrice=916
+                }else if(this.fixedArrey.indexOf(commodityId)!=-1&&commodityId=='86580062'){
+                  this.MarketPrice=3288
+                }
+                else if(this.fixedArrey.indexOf(commodityId)!=-1&&commodityId=='86579915'){
+                  this.MarketPrice=2658
+                }
+                else if(this.fixedArrey.indexOf(commodityId)!=-1&&commodityId=='86579261'){
+                  this.MarketPrice=1598
+                }
+                else if(this.fixedArrey.indexOf(commodityId)!=-1&&commodityId=='86579869'){
+                  this.MarketPrice=1158
+                }else if(this.fixedArrey.indexOf(commodityId)!=-1&&commodityId=='86579235'){
+                  this.MarketPrice=398
+                }else if(this.fixedArrey.indexOf(commodityId)!=-1&&commodityId=='86579708'){
+                  this.MarketPrice=1196
+                }else if(this.fixedArrey.indexOf(commodityId)!=-1&&commodityId=='85046553'){
+                  this.MarketPrice=688
+                }
+                else if(this.fixedArrey.indexOf(commodityId)!=-1&&commodityId=='85046368'){
+                  this.MarketPrice=1976
+                }else if(this.fixedArrey.indexOf(commodityId)!=-1&&commodityId=='85046529'){
+                  this.MarketPrice=1988
+                }
+                else if(this.fixedArrey.indexOf(commodityId)!=-1&&commodityId=='37847591'){
+                  this.MarketPrice=1088
+                }
+                else if(this.fixedArrey.indexOf(commodityId)!=-1&&commodityId=='86579824'){
+                  this.MarketPrice=888
+                }else if(this.fixedArrey.indexOf(commodityId)!=-1&&commodityId=='85046496'){
+                  this.MarketPrice=1288
+                }else if(this.fixedArrey.indexOf(commodityId)!=-1&&commodityId=='85046638'){
+                  this.MarketPrice=1688
+                }
+
+
+
+
+                else{
+                  let MarketPrice =parseFloat(this.goodDetail.salesPrice)+parseFloat(this.goodDetail.salesPrice/100*50)
+                  this.MarketPrice=MarketPrice.toFixed(2)
+                }
+
+              }
+
+
+              if (response.body.pic.split(',').length>4){
+                this.pics = response.body.pic.split(',').slice(0,4)
+              }else{
+                this.pics = response.body.pic.split(',')
+              }
+              this.currentImg=this.pics[0]
+
+              if (JSON.parse(this.goodDetail.fullSingleActivity)!=null){
+                this.promotionActivity = JSON.parse(this.goodDetail.fullSingleActivity)
+                this.promotionName=this.promotionActivity[0].promotionName
+              }
+
+              let priceInterval = JSON.parse(response.body.standard).priceInterval
+              this.guige = JSON.parse( JSON.parse(priceInterval)[0].data );
+              this.storeNum= JSON.parse(response.body.standard).storeNum;
+              for(let i=0;i<this.guige.length;i++){
+                if (this.guige[i].Standard==null||this.guige[i].Standard==''){
+                  this.showGuiGe=false
+                }else{
+                  this.showGuiGe=true
+                }
+              }
+
+            }
+          })
+        }
+
+      },
+      //获取图文信息
+      getParameters() {
+        let url = HOST_HDPCOMMODITY + '/commodityFront/getCommodityPicDetail'
+        let commodityId=null
+        if (this.$route.query.commodityId){
+          commodityId=this.$route.query.commodityId
+        }else{
+          commodityId=window.localStorage.setItem('commodityId')
+        }
+
+        this.$resource(url).get({commodityId: commodityId}).then((response) => {
+          if (response.status == 200) {
+            this.PicTextDetail = response.body.detail
+          }
+        })
+      },
+      //获取推荐的商品
+      getRecommendGood(){
+        let url = HOST_HDPCOMMODITY + '/commodityFront/getCommodityDetailRecommendList'
+        let commodityId=null
+        if (this.$route.query.commodityId){
+          commodityId=this.$route.query.commodityId
+        }else{
+          commodityId=window.localStorage.setItem('commodityId')
+        }
+
+        if (commodityId){
+          this.$resource(url).get({currNum: 1, pageSize: 6, version: 'v1.3', type: 0, commodityId: commodityId}).then((response) => {
+            if (response.body.code == 200) {
+              this.recommendGoods = response.body.respBody
+
+              let len = this.recommendGoods
+              for (let i = 0; i < len.length; i++) {
+                len[i].pic = len[i].pic.split(',')[0]
+              }
+              this.firstRecommendGoods=this.recommendGoods.slice(0,3)
+              // console.log('123456',JSON.stringify(this.firstRecommendGoods[0].commodityId))
+            }
+          })
+        }
+      },
+      //点击买家还在看的商品
+      toDtails:function(a,index){
+          let id=this.firstRecommendGoods[index].commodityId
+        document.body.scrollTop = 0
+        window.location.reload()
+      },
+//      获取所有评价内容
+      getComment:function(){
+        let url = HOST_HDPMESSAGE+ '/comment/getCommentByExternalId';
+        let commodityId=null
+        if (this.$route.query.commodityId){
+          commodityId=this.$route.query.commodityId
+        }else{
+          commodityId=window.localStorage.setItem('commodityId')
+        }
+        this.$resource(url).get({externalId: commodityId, start: this.pages, size: 5}).then((response) => {
+          if (response.status == 200) {
+            this.comments = response.body.list
+            this.total=response.body.total
+            this.pageNo = Math.ceil( this.total/this.pageSize);
+            this.allPageNum=this.pageNo
+            if (this.total>999){
+              this.total=this.total+'+'
+            }
+            else if (this.total==0){
+              this.showEvaluate=false
+              this.showEvaluateTitle=false
+              this.pageShow=false
+
+            }else{
+              if (this.showDetail!=true){
+                this.showEvaluate=true
+                this.showEvaluateTitle=true
+              }
+
+            }
+
+          }
+        })
+      },
+//获取有图评价
+      getImgComment:function(){
+        let url = HOST_HDPMESSAGE+ '/comment/getCommentByExternalId';
+        let commodityId=null
+        if (this.$route.query.commodityId){
+          commodityId=this.$route.query.commodityId
+        }else{
+          commodityId=window.localStorage.setItem('commodityId')
+        }
+        this.$resource(url).get({externalId: commodityId, start: this.pages, size: 5,onlyPicComment:1}).then((response) => {
+          if (response.status == 200) {
+            this.imgComments = response.body.list
+            if (this.imgComments==[]||this.imgComments==''||this.imgComments==null){
+              this.erShowImg=false
+            }else{
+              this.erShowImg=true
+            }
+            this.totalImg=response.body.total
+            this.pageNo = Math.ceil( this.totalImg/this.pageSize);
+            this.imgPageNum=this.pageNo
+
+            if (this.totalImg>999){
+              this.totalImg=this.totalImg+'+'
+            }
+          }
+        })
+      },
+//      点击上一页
+      minus(data,img){
+        data--;
+        this.pages = data;
+        document.body.scrollTop = 700
+        if (this.pageNo==this.imgPageNum){
+          this.getImgComment()
+          return data;
+        }else{
+          this.getComment()
+          return data;
+        }
+
+
+      },
+      //下一页
+      plus(data){
+//        let this = this;
+        data++;
+        this.pages = data;
+        document.body.scrollTop = 700
+        if (this.pageNo==this.imgPageNum){
+          this.getImgComment()
+          return data;
+        }else{
+          this.getComment()
+
+          return data;
+        }
+
+      },
+      classRenderer(index){
+        let pages = this.pages;
+        if(index != pages){
+          return 'crt';
+        }
+        return '';
+      },
+      btnClick(data){
+        document.body.scrollTop = 700
+        if (data != this.pages){
+          this.pages = data;
+          if (this.pageNo==this.imgPageNum){
+            this.getImgComment()
+          }else{
+            this.getComment()
+          }
+        }
+
+
+
+      },
+
+//    选择规格
+      selectedColor:function(event,index){
+
+        this.$nextTick(()=>{
+          let evt = event || window.event;
+          let target = evt.target || evt.srcElement;
+          let specifications=this.$refs.specifications
+          let span=specifications.getElementsByClassName('guige-span')
+          for(let i=0;i<span.length;i++){
+            span[i].className='guige-span'
+          }
+          this.selectedGuige=this.guige[index].Standard
+          if(target.tagName=='SPAN'){
+            if (target.className!='guige-span imgActive'){
+              target.className='guige-span imgActive'
+            }else{
+              target.className='guige-span'
+            }
+
+          }
+          this.pcSalesPrice=this.guige[index].salePrice
+
+          let bottom=parseFloat(this.guige[index].salePrice )+parseFloat(this.guige[index].salePrice/100*50)
+          this.MarketPrice=bottom.toFixed(2)
+
+
+        })
+      },
+//      获取产品参数
+      getParameters2:function(){
+        let url = HOST_HDPCOMMODITY + '/commodityFront/getCommodityPicDetail'
+        let commodityId=null
+        if (this.$route.query.commodityId){
+          commodityId=this.$route.query.commodityId
+        }else{
+          commodityId=window.localStorage.setItem('commodityId')
+        }
+
+        this.$resource(url).get({commodityId: commodityId}).then((response) => {
+          if (response.status == 200) {
+            if (JSON.parse(response.body.attriDetail) == null) {
+              this.proParameters = []
+              this.noPicParams = false
+            } else {
+              let attriDetail = JSON.parse(response.body.attriDetail)
+              this.noPicParams = true
+              for (let  i = 0; i < attriDetail.length; i++) {
+                if (attriDetail[i].name == "基本参数") {
+                  this.proParameters = attriDetail[i].attribute
+                }
+              }
+            }
+          }
+        })
+      },
+//      点击加入采购单
+      addShopCar:function () {
+        let _this=this
+        if (!window.localStorage.getItem('loginCode')){
+          // let url = window.location.href.substring( window.location.href.lastIndexOf('/'))
+          _this.alertMsg='请先登录!'
+          _this.showSopCarAlert=true
+          setTimeout(function(){
+            _this.showSopCarAlert=false
+            let domain_cas = HOST_CHECK
+            let _ur = window.location.href
+            window.location.href = domain_cas + "/login?source=1&service=" + encodeURIComponent(_ur);
+          },1000)
+        }else{
+          if (_this.showGuiGe==true&&_this.selectedGuige==''){
+            _this.alertMsg='请选择您的商品规格'
+            _this.showSopCarAlert=true
+            setTimeout(function(){
+              _this.showSopCarAlert=false
+            },2000)
+          }else{
+            _this.count=parseInt(_this.count)
+            _this.addCartParams = {
+              goodsId: _this.$route.query.commodityId,
+              goodsNum: _this.count,
+              goodsSpec:_this.selectedGuige
+            }
+            let url = HOST_HDPCAR + '/addGoods'
+            this.$resource(url).save({ }, _this.addCartParams ).then((response) => {
+              if( response.status == 200 ){
+                _this.alertMsg='添加商品成功'
+                _this.showSopCarAlert=true
+                _this.detailCount= parseInt(_this.detailCount)+ parseInt(_this.count)
+                setTimeout(function(){
+                  _this.showSopCarAlert=false
+                },2000)
+              }
+            })
+          }
+        }
+        if (_this.count==''){
+          _this.count=1
+        }
+      },
+      // 立即购买，创建预订单
+      goToPreOrder () {
+        let _this = this
+        if (_this.showGuiGe === true && _this.selectedGuige === ''){
+          _this.alertMsg='请选择您的商品规格'
+          _this.showSopCarAlert=true
+          setTimeout(function(){
+            _this.showSopCarAlert=false
+          },2000)
+          return
+        }
+        let goods = []
+        let good0 = {
+          costItem: 0,
+          exhibitionId: 0,
+          exhibitionName: '',
+          id: this.goodDetail.id,
+          imgUrl: this.goodDetail.pic.split(',')[0],
+          originPdPrice: this.MarketPrice,
+          packageId: 0,
+          pdBn: 0,
+          pdId: this.goodDetail.commodityId,
+          pdName: this.goodDetail.name,
+          pdPrice: this.goodDetail.salesPrice,
+          pdQuantity: this.count,
+          // pdSpce: this.goodDetail.standard,
+          pdSpce: this.selectedGuige,
+          pdUnit: this.goodDetail.unit,
+          refundStatue: 0,
+          refundType: 0,
+          version: 'v1.2'
+        }
+        goods.push(good0)
+        // console.log(this.guige)
+        // console.log(this.selectedGuige)
+        api_post({
+          url: HOST_ORDERS + '/order/front/addPreOrder',
+          data: goods,
+          done: function(res){
+            // console.log(res)
+            let key = {key: res.entity}
+            location.href = HR+'/receiveMsg?' + url_stringfy(key)
+            // new_window(HR+'/receiveMsg?' + url_stringfy(key))
+          }
+        })
+      },
+
+    },
+    computed: {
+      //*********************分页开始******************************//
+      indexs: function () {
+//        let this = this;
+        let ar = [];
+        if (this.pages > 3 ) {
+          ar.push(this.pages - 3);
+          ar.push(this.pages - 2);
+          ar.push(this.pages - 1);
+        } else{
+          for (var i = 1; i < this.pages; i++) {
+            ar.push(i);
+          }
+        }
+        if (this.pages != this.pageNo) {
+          ar.push(this.pages);
+        }
+        if (this.pages < ( this.pageNo - 4 )) {
+          ar.push(this.pages + 1);
+          ar.push(this.pages + 2);
+          ar.push(this.pages + 3);
+          if (this.pages < ( this.pageNo - 4 )) {
+            this.showMoreTail = true;
+//                this.nextDis = false;
+          }
+        } else {
+          this.showMoreTail = false;
+//          this.nextDis = true;
+          for (var i = (this.pages+1); i < this.pageNo; i++) {
+            ar.push(i);
+          }
+        }
+        return ar;
+      }
+      //*********************分页结束******************************//
+    },
+    components:{
+      hdpFooter,hdpTop,hdpSearchAll,hdpNav,hdpFooterSub
+    }
+  }
+</script>
+<style>
+
+  .pic-goods-detail p{
+    width:100%;
+    /*text-align: center;*/
+    color:#333;
+    font-size:16px;
+    line-height:24px;
+    /*margin-top:-18px;*/
+
+  }
+  /* .pic-goods-detail p:first-child{
+    margin-bottom:30px;
+  } */
+  .pic-goods-detail p img{
+    display:block;
+    width:100%;
+
+  }
+  #qrcode canvas{
+    margin-top:58px;
+    margin-left:2px;
+  }
+
+</style>
+<style scoped>
+  /*回到顶部*/
+  .backtop {
+    position: fixed;
+    width: 55px;
+    height: 81px;
+    background: url(../../assets/images/img/top.png);
+    right:20px;
+    bottom: 170px;
+    z-index: 100;
+    cursor:pointer ;
+  }
+  /*事件触发后的效果start*/
+  .imgActive{
+    color:#6878c6 ;
+    border:1px solid #6878c6 !important;
+  }
+  .smallActive{
+    border:2px solid #a8b1db;
+    width:96px;
+    height:96px;
+  }
+
+  .nav-active{
+    height:42px;
+    background:#fff;
+    border-top:1px solid #a8b1db;
+    color:#a8b1db;
+    border-bottom: 1px solid #d6d6d6;
+  }
+  .ellipse-active{
+    color:#6878c6 !important;
+  }
+  /*事件触发后的效果end*/
+  .detail-box{
+    width:100%;
+    position: relative;
+  }
+  .detail{
+    width:1190px;
+    margin:0 auto;
+    position: relative;
+  }
+  .warp-pc{
+    width:1190px;
+  }
+  .floor-title{
+    width:100%;
+    font-size:0;
+    height:54px;
+    text-align: left;
+    line-height: 54px;
+    display: none;
+  }
+  .floor-title div,.floor-title img{
+    display: inline-block;
+    font-size:14px;
+  }
+  .floor-title img{
+    vertical-align: middle;
+    margin-bottom:10px;
+    margin-left:5px;
+    margin-right:5px;
+  }
+  .floor-title-word{
+    color:#594b43;
+  }
+  .current-title{
+    color:#6878c6;
+  }
+  .goods-box{
+    width:100%;
+    font-size: 0;
+    margin-bottom:30px;
+    margin-top:20px;
+    position:relative;
+    overflow: hidden;
+
+  }
+  .goods-box-left{
+    width:426px;
+    height:428px;
+    margin-right:20px;
+    float: left;
+    border:1px solid #d6d6d6;
+  }
+  .goods-box-left-up{
+    width:430px;
+    height:430px;
+    background:red;
+    opacity: 0.3;
+    position:absolute;
+    top:0;
+    left:0;
+    z-index: 10;
+    overflow: hidden;
+
+  }
+  .goods-box-left-up img{
+
+  }
+  .goods-box-left img{
+    display: inline-block;
+    width:425px;
+    height:425px;
+  }
+  .goods-box-right{
+    width:740px;
+    float: left;
+  }
+  .goods-right-left{
+    float: left;
+  }
+  .goods-small-box{
+    width:98px;
+    height:98px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    border:1px solid #d6d6d6;
+  }
+  .goods-small-box img{
+    display: inline-block;
+    width:96px;
+    height:96px;
+
+  }
+  .nav-line{
+    width:100%;
+    height:1px;
+    background: #a8b1db;
+  }
+  .goods-right-right{
+    width:578px;
+    margin-left:60px;
+    float: left;
+  }
+  .goods-rright-title{
+    width:100%;
+    font-size: 18px;
+    font-weight: 500;
+    text-align: left;
+    line-height: 28px;
+  }
+  .goods-rright-words{
+    width:100%;
+    text-align: left;
+    font-size:14px;
+    color:#6878c6;
+    margin-top:21px;
+  }
+  .goods-rright-sale-box{
+    width:100%;
+    background:#edeff5;
+    margin-top:21px;
+    border-top:1px solid transparent;
+    position: relative;
+    padding-bottom:20px;
+  }
+  .sale-price{
+    width:100%;
+    padding-left:11px;
+    margin-top:18px;
+    overflow: hidden;
+    box-sizing: border-box;
+    position: relative;
+
+  }
+  .sale-price-title{
+    font-size:14px;
+    color:#333;
+    /*letter-spacing: 16px;*/
+    text-align: left;
+    float: left;
+
+  }
+  .sale-price-count{
+    color:#d72125;
+    float: left;
+    margin-left:30px;
+    position:relative;
+    font-size: 14px;
+  }
+  .promotion-words {
+    float: left;
+    margin-left:30px;
+    position:relative;
+    font-size: 14px;
+  }
+  .price-logo{
+    font-size:14px;
+    display: inline-block;
+  }
+  .price-shumu{
+    display: inline-block;
+    font-size:20px;
+  }
+  .markit-logo{
+    font-size:14px;
+    display: inline-block;
+    color:#333;
+  }
+  .markit-shumu{
+    display: inline-block;
+    font-size:16px;
+    color:#333;
+  }
+  .sale-decive{
+    width:100%;
+    position: absolute;
+    bottom:7px;
+    left:2px;
+    height:1px;
+    background:#333;
+  }
+  .promotion-words span{
+    color:#d72125;
+  }
+  .specifications-box{
+    width:100%;
+    font-size: 0;
+    text-align: left;
+    position: relative;
+    margin-top:22px;
+    overflow: hidden;
+  }
+  .specifications-box-next{
+    width:100%;
+    font-size: 0;
+    text-align: left;
+    height:32px;
+    margin-top:22px;
+    overflow: hidden;
+  }
+  .specifications-title{
+    display:inline-block ;
+    width:50px;
+    height:50px;
+    line-height: 50px;
+    text-align: right;
+    font-size: 14px;
+
+  }
+  .specifications-title-next{
+    display:inline-block ;
+    width:50px;
+    height:30px;
+    line-height: 30px;
+    text-align: right;
+    font-size: 14px;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+  .specifications-img{
+    float: right;
+    display: inline-block;
+    margin-left:40px;
+    width:calc(100% - 90px);
+  }
+  .guige-span{
+    display: inline-block;
+    padding-left:6px;
+    padding-right:6px;
+    height:48px;
+    border:1px solid #d6d6d6;
+    margin-right:10px;
+    vertical-align: middle;
+    margin-bottom: 12px;
+    font-size:12px;
+    cursor: pointer;
+    text-align: center;
+    line-height: 48px;
+  }
+  .selectedImg{
+    position:absolute;
+    top:0;
+    left:0;
+    z-index: 1;
+    display: none;
+    width:50px;
+    height:50px;
+    cursor: pointer;
+
+  }
+  .selectedImgActive{
+    display: inline-block !important;
+  }
+  .count-choose{
+    text-align: left;
+    display: inline-block;
+    width:130px;
+    height:28px;
+    border:1px solid #d6d6d6;
+    margin-left:40px;
+    overflow: hidden;
+
+  }
+  .count-choose div{
+    display: inline-block;
+  }
+  .reduce{
+    width:29px;
+    height:30px;
+    border-right:1px solid #d6d6d6;
+    text-align: center;
+    line-height: 30px;
+    font-size:16px;
+    color:#d6d6d6;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  .last-count{
+    outline: none;
+    width:70px;
+    height:30px;
+    text-align: center;
+    color:#333;
+    font-size:14px;
+    background: #fff;
+    border-right:1px solid #d6d6d6;
+  }
+  .plus{
+    width:28px;
+    height:28px;
+    color:#333;
+    font-size:14px;
+    text-align: center;
+    line-height: 30px;
+    cursor: pointer;
+  }
+  .sub-btn{
+    display: inline-block;
+    width:170px;
+    height:50px;
+    background:#6878c6;
+    font-size:20px;
+    color:#fff;
+    line-height: 50px;
+    text-align: center;
+    cursor: pointer;
+    margin-top:44px;
+    margin-left:13px;
+  }
+  .sub-btn2{
+    display: inline-block;
+    width:168px;
+    height:48px;
+    background:#f0f1f9;
+    font-size:20px;
+    color:#6878c6;
+    line-height: 50px;
+    text-align: center;
+    cursor: pointer;
+    margin-top:44px;
+    margin-left:40px;
+    border:1px solid #6878c6;
+  }
+
+  .sub-btn3{
+    display: inline-block;
+    width:134px;
+    height:50px;
+    font-size:20px;
+    color:#fff;
+    line-height: 50px;
+    text-align: center;
+    margin-top:44px;
+    margin-left:13px;
+    background:#ccc;
+  }
+
+  .bug-alert{
+    width:100%;
+    height:100%;
+    position: fixed;
+    top:0;
+    left:0;
+    z-index: 2;
+  }
+  .bug-cover{
+    width:100%;
+    height:100%;
+    position:absolute;
+    top:0;
+    left:0;
+    background: #333;
+    opacity:0.4;
+    z-index: 3;
+  }
+  .bug-alert-box{
+    width:367px;
+    height:494px;
+    background:#fff;
+    position:fixed;
+    top:calc(50% - 248px);
+    top:-webkit-calc(50% - 248px);
+    left:calc(50% - 184px);
+    left:-webkit-calc(50% - 184px);
+    z-index: 4;
+    /*border:2px solid #8c8fa0;*/
+    box-shadow:1px 1px 2px 2px #8c8fa0
+  }
+  .alert-box-header{
+    width:100%;
+    height:50px;
+    background:#a8b1db;
+    font-size:20px;
+    color:#fff;
+    line-height:50px;
+  }
+  .close-icon{
+    position: absolute;
+    width:18px;
+    height:18px;
+    z-index: 5;
+    right:13px;
+    top:16px;
+    cursor: pointer;
+  }
+  .erweima{
+    display: inline;
+    width:322px;
+    height:257px;
+    margin-top:58px;
+    margin-left:21px;
+  }
+  .words-tishi{
+    width:100%;
+    font-size:20px;
+    color:#333;
+    margin-top:20px;
+  }
+  .goods-detail-box{
+    font-size: 0;
+    text-align: left;
+    margin-bottom:30px;
+    width:910px;
+    float: right;
+  }
+  .details-nav{
+    display: inline-block;
+    height:44px;
+    width:170px;
+    font-size:16px;
+    color:#333;
+    line-height: 44px;
+    text-align: center;
+    border-right:1px solid #d6d6d6;
+    cursor:pointer;
+    border-bottom: none;
+  }
+  .details-nav-box{
+    width:908px;
+    height:44px;
+    background:#edeff5;
+    border:1px solid #d6d6d6;
+    /*border-left:1px solid #d6d6d6;*/
+    /*border-right:1px solid #d6d6d6;*/
+  }
+  .evaluate-box{
+    width:910px;
+    margin-left:20px;
+  }
+  .evaluate-header{
+    width:850px;
+    height:74px;
+    border-bottom:1px solid #d6d6d6;
+    position: relative;
+  }
+  .bigyaun{
+    width:20px;
+    height:20px;
+    border:1px solid #d6d6d6;
+    border-radius: 50%;
+    margin-top:25px;
+    margin-left:13px;
+    position:relative;
+    display: inline-block;
+    cursor: pointer;
+  }
+  .bigyaun-next{
+    margin-left:130px;
+    cursor: pointer;
+  }
+  .ellipse{
+    display: inline-block;
+    position:absolute;
+    top:3px;
+    left:3.5px;
+  }
+  .all-count{
+    font-size:16px;
+    color:#333;
+    position: absolute;
+    left:49px;
+    top:26px;
+  }
+  .all-count-next{
+    font-size:16px;
+    color:#333;
+    position: absolute;
+    left:202px;
+    top:26px;
+  }
+  .evaluate-body{
+    height:352px;
+    width:870px;
+    border-bottom:1px dashed #d6d6d6;
+  }
+  .evaluate-left{
+    float: left;
+    display: inline-block;
+    height:100%;
+    width:130px;
+    position: relative;
+  }
+  .user-logo{
+    display: inline-block;
+    position: absolute;
+    top:50px;
+    left:20px;
+    width:90px;
+    height:90px;
+    border-radius: 50%;
+  }
+  .userName{
+    width:100%;
+    font-size:14px;
+    text-align: center;
+    letter-spacing: 1px;
+    margin-top:156px;
+  }
+  .evaluate-right{
+    float: left;
+    display: inline-block;
+    height:100%;
+    width:740px;
+    position:relative;
+  }
+  .evaluate-title{
+    width:100%;
+    margin-top:88px;
+    text-align: left;
+    font-size:16px;
+    line-height: 22px;
+  }
+  .img-box{
+    width:100%;
+    height:100px;
+    margin-top:30px;
+
+  }
+  .img-box img{
+    display: inline-block;
+    width:98px;
+    height:98px;
+    border:1px solid #d6d6d6;
+    margin-right:20px;
+  }
+  .color{
+    width:100%;
+    margin-top:30px;
+    text-align: left;
+    font-size:14px;
+    color:#707070;
+  }
+  .evaluate-time{
+    font-size:14px;
+    color:#707070;
+    position:absolute;
+    right:0;
+    bottom:50px;
+  }
+  .pic-goods-detail{
+    width:100%;
+    margin-bottom:132px;
+    margin-top:50px;
+  }
+  .two_floor {
+    width:250px;
+    background-color: #fff;
+    float: left;
+    border:1px solid #d6d6d6;
+    margin-bottom:160px;
+  }
+  .hdp_two_wrap {
+    width: 100%;
+    background-color: #fff;
+    overflow: hidden;
+
+  }
+  .recommend-title{
+    width:100%;
+    height:45px;
+    line-height: 45px;
+    text-align: center;
+    background-color: #edeff5;
+    box-sizing: border-box;
+    font-size:18px ;
+    color:#333;
+  }
+  .hdp_two_list {
+    width: 100%;
+    margin-bottom:330px;
+  }
+
+  .hdp_two_list li {
+    position: relative;
+    text-align: center;
+    background-color: #fff;
+    width: 220px;
+    height: 352px;
+    margin-left:15px;
+    border-bottom: 1px solid #d6d6d6;
+    cursor: pointer;
+    margin-bottom:6px;
+
+  }
+  #hdp_two_list li:last-child{
+    border:none;
+  }
+  .hdp_two_list li.last {
+    margin-right: 0;
+  }
+  .hdp_two_list li .two_down {
+    position: absolute;
+    bottom: 10px;
+    left: 0;
+    width: 100%;
+    color: #4d3e36;
+    height: 60px;
+
+  }
+  .hdp_two_list li .two_down p {
+    width:100%;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    padding-left:10px;
+    padding-right:10px;
+    box-sizing: border-box;
+  }
+  .hdp_two_list li .two_down h3 {
+    margin: 0;
+    margin-top: 6px;
+    font-size: 16px;
+    font-weight: 600;
+  }
+  .hdp_two_list li:hover p {
+    color:#6878c6;
+  }
+  .hdp_two_list li:hover .hover_img{
+    transform:scale(1.1,1.1);
+    -moz-transform:scale(1.1,1.1);
+    -webkit-transform:scale(1.1,1.1);
+    -o-transform:scale(1.1,1.1);
+  }
+  .hdp_two_list li .two_img {
+    text-align: center;
+    width: 200px;
+    height: 200px;
+  }
+  .hdp_two_list li .two_img img {
+    display: block;
+    width:200px;
+    height:200px;
+    text-align: center;
+    margin-left:10px;
+    margin-top:40px;
+  }
+  /*分页start*/
+  .paging{
+    width:1190px;
+    height:500px;
+
+    margin:30px auto;
+  }
+  .searchPaging {
+    margin-top:30px;
+    height:36px;
+    margin-bottom: 44px;
+    margin-right:39px;
+  }
+  .searchPaging ul {
+    float: right;
+  }
+  .searchPaging li {
+    float: left;
+    height:34px;
+    line-height:34px;
+    width:38px;
+    text-align: center;
+    border:1px solid #d6d6d6;
+    border-left:0;
+    font-size: 14px
+  }
+  .searchPaging li.on {
+    background: #6878c6;
+    border:0;
+    height: 36px;
+    line-height:36px;
+  }
+  .searchPaging li.on a {
+    color:#fff;
+    height:36px;
+    line-height:36px;
+  }
+
+  .searchPaging li a {
+    display: block;
+    height:34px;
+    line-height:34px;
+    color:#4d3e36;
+  }
+  .searchPaging .prevPage,.searchPaging .nextPage {
+    width:86px;
+  }
+  .searchPaging .prevPage {
+    border-left:1px solid #d6d6d6;
+  }
+  .searchPaging .prevColor  {
+    color: #d6d6d6;
+    height:34px;
+    line-height:34px;
+  }
+
+  .searchPaging li.classRenderer {
+    background: #6878c6;
+    border:0;
+    height: 36px;
+    line-height:36px;
+  }
+  .searchPaging li.classRenderer a {
+    color:#fff;
+    height:36px;
+    line-height:36px;
+  }
+  /*分页end*/
+  .bottom-device{
+    border-top:1px solid #d6d6d6;
+    height:1px;
+    width:100%;
+    position:absolute;
+    left:0;
+    bottom:582px;
+    z-index: 100;
+  }
+  .sale-num{
+    width:95px;
+    border-left:1px solid #d9dded;
+    float:right;
+    text-align: center;
+    position: absolute;
+    right:0;
+    top:22px;
+  }
+  .sale-words{
+    width:100%;
+    font-size:18px;
+  }
+  .sale-count{
+    font-size:18px;
+    color:#a8b1db;
+    margin-top:6px;
+  }
+  /*商品参数start*/
+  .commodity-parameter{
+    width:100%;
+    margin-top:30px;
+    font-size: 0;
+  }
+  .parameter-line{
+    display: inline-block;
+    width:50%;
+    height:40px;
+    border-bottom: 1px dashed #e4e4e4;
+    font-size: 16px;
+    line-height: 40px;
+    box-sizing: border-box;
+    padding-left:30px;
+    position:relative;
+  }
+  .parameter-line-name{
+    color:#333;
+  }
+  .parameter-line-value{
+    position: absolute;
+    color:#a0a0a0;
+    display: inline-block;
+    right:50px;
+    top:0;
+    width:250px;
+    overflow: hidden;
+    text-overflow:ellipsis;
+    white-space: nowrap;
+  }
+  /*商品参数end*/
+  /*加入采购单弹框start*/
+  .shop-car-alert{
+    width:310px;
+    height:100px;
+    background:#000;
+    opacity: 0.6;
+    position: fixed;
+    top:calc(50% - 50px);
+    left:calc(50% - 155px);
+    line-height:100px ;
+    border-radius: 5px;
+    font-size: 14px;
+    color:#fff;
+    font-family: Microsoft YaHei;
+  }
+  /*加入采购单弹框end*/
+</style>

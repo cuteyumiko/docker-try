@@ -1,0 +1,1067 @@
+<template>
+  <div class="shop-car-pc">
+    <div class="backtop" @click="backtop"></div>
+    <hdp-top :messagePC="messagePC" :listLengthPC="listLengthPC"></hdp-top>
+    <search-all :showCarTitle="showCarTitle"></search-all>
+    <!--采购单不为空start-->
+    <div v-if="showCar">
+      <div class="shop-car-devide"></div>
+      <div class="order_car_box" ref="orderCarBox">
+        <div class="order_car_header">
+          <div class="header-selected" @click="allSelected">
+            <img src="../../assets/images/img/selected-pc.png" style="margin-bottom:6px" alt="" v-if="isAllSelected">
+          </div>
+          <div class="allwords">全选</div>
+          <div class="header-goods-words">商品信息</div>
+          <div class="header-singer">单价</div>
+          <div class="header-count">数量</div>
+          <div class="header-count">金额</div>
+        </div>
+        <!--采购单数据start-->
+        <div class="car_goods_box" v-for="(item,index) in carList" :key="index">
+          <div class="goods_selected" @click="goodsSelected(index)">
+            <img src="../../assets/images/img/selected-pc.png" style="margin-bottom:6px" alt=""  v-if="item.select==1">
+          </div>
+          <img :src="item.imagePath" class="goods_img" alt="">
+          <div class="is_valid_bg" v-if="!item.isValid">
+            <div class="is_valid_words">失效</div>
+          </div>
+
+
+          <div class="goods_msg">
+            <div class="goods_msg_words">{{item.goodsName}}</div>
+            <div class="goods_guige">{{item.goodsSpec}}</div>
+          </div>
+          <div class="goods_price">¥{{item.price}}</div>
+          <div class="count-change">
+            <div class="count-jian" @click="goodsJian(index)">-</div>
+            <input type="text" v-model="item.addCount" class="all-count" @blur="test($event,index)">
+            <div class="count-jia" @click="goodsJia(index)">+</div>
+          </div>
+          <div class="all-money">¥{{item.totalPrice}}</div>
+          <!--<div class="all-money">¥{{totalGoodsPrice}}</div>-->
+          <div class="detele-goods" @click="deletedGoods(index)"></div>
+        </div>
+        <!--采购单数据end-->
+        <div class="order_car_footer"  ref="orderCarFooter">
+          <div class="footer-selected" @click="allSelected">
+            <img src="../../assets/images/img/selected-pc.png" style="margin-bottom:6px" alt="" v-if="isAllSelected">
+          </div>
+          <div class="footer-allwords" @click="allSelected">全选</div>
+          <div class="footer-deleted" @click="deletedBottom">删除</div>
+          <div class="footer-haved">
+            <span class="footer-haved-wodrs">已选</span>
+            <span class="footer-haved-count">{{totalGoods}}</span>
+            <span class="footer-haved-wodrs">件</span>
+          </div>
+          <div class="footer-total">合计（不含运费）：</div>
+          <div class="footer-total-money">¥{{totalCarPrice}}</div>
+          <div class="footer-settlement" @click="toSettlement">结算</div>
+        </div>
+        <div class="order_car_footer jie-suan-active"  v-if="showNext">
+          <div class="footer-selected" @click="allSelected">
+            <img src="../../assets/images/img/selected-pc.png" style="margin-bottom: 6px" alt="" v-if="isAllSelected">
+          </div>
+          <div class="footer-allwords">全选</div>
+          <div class="footer-deleted" @click="deletedBottom">删除</div>
+          <div class="footer-haved">
+            <span class="footer-haved-wodrs">已选</span>
+            <span class="footer-haved-count">{{totalGoods}}</span>
+            <span class="footer-haved-wodrs">件</span>
+          </div>
+          <div class="footer-total">合计（不含运费）：</div>
+          <div class="footer-total-money">¥{{totalCarPrice}}</div>
+          <div class="footer-settlement" @click="toSettlement">结算</div>
+        </div>
+      </div>
+      <div class="shop-car-devide-bottom"></div>
+    </div>
+    <!--采购单不为空end-->
+    <!--结算二维码弹框start-->
+    <div class="bug-alert-box" v-if="ShowJieSuanMa">
+      <div data-v-1c4b6b94="" class="alert-box-header">微信登录</div>
+      <img src="../../assets/images/img/close-icon.png" class='close-icon' alt="" @click="closeJieSuan">
+      <div id="qrcode2" ></div>
+      <div data-v-1c4b6b94="" class="words-tishi">扫描二维码立即购买</div>
+    </div>
+
+    <!--结算二维码弹框end-->
+    <!--采购单为空start-->
+    <div v-if="showNullCar">
+      <div class="shop-car-devide"></div>
+      <div class="null_car">
+        <img class="null_car_img" src="../../assets/images/img/nullcar-pc.png" alt="">
+        <div class="null_car_words">您的采购单还是空的~</div>
+        <div class="gosell" @click="goBugGoods">去采购</div>
+      </div>
+      <div class="shop-car-devide-bottom"></div>
+    </div>
+    <!--采购单为空end-->
+
+    <!--未选择结算宝贝提示start-->
+    <div class="no-settlement-goods" v-if="showNoSettlement">{{kuncunAlert}}</div>
+    <!--未选择结算宝贝提示end-->
+
+    <!--确认删除弹框start-->
+    <div class="detele-sure" v-if="showDeteleSure">
+      <div class="sure-words">确认删除该商品？</div>
+      <div class="detele-sure-btn" @click="deteleSure">确定</div>
+      <div class="detele-cancel-btn" @click="deteleCancel">取消</div>
+    </div>
+    <!--确认删除弹框end-->
+
+    <!--信息提示start-->
+    <div class="massge-alert" v-if="showAlert">
+      <div class="massge-alert-body">
+        <img class="alert-logo" src="../../assets/images/img/waring-pc.png" alt="">
+        <div class="alert-words">
+          <div class="alert-words-top">信息提示</div>
+          <div class="slert-words-bottom">请选择商品</div>
+        </div>
+        <img class="alert-close" src="../../assets/images/img/close-pc.png" alt="" @click="closeAlert">
+      </div>
+    </div>
+    <!--信息提示end-->
+    <div class="shop-car-cover" v-if="isShowCover"></div>
+
+    <hdp-footersub></hdp-footersub>
+    <hdp-footer></hdp-footer>
+  </div>
+</template>
+<script>
+  import hdpFooter from '../../component/component-pc/footer.vue'
+  import hdpTop from '../../component/component-pc/top.vue'
+  import searchAll from '../../component/component-pc/searchall.vue'
+  import hdpFootersub from '../../component/component-pc/footersub.vue'
+  import Vue from 'vue'
+  import { alert_msg, url_stringfy } from '../../utils/utils.js'
+  import { api_get, api_post } from '../../utils/api.js'
+  export default{
+    data(){
+      return {
+        messagePC: null,
+        showCarTitle: true,
+        showNullCar: false,
+        showCar: false,
+        isAllSelected: false,
+        isShowCover: false,
+        showNoSettlement: false,
+        showAlert: false,
+        carList: '',
+        listLengthPC: null,
+        showDeteleSure: false,
+        // 放置购物车里选中的商品索引值
+        allSelectedGoods: {},
+        urlToal: '',
+        ShowJieSuanMa: false,
+        // 监听结算栏的offsetTop
+        jieoffsetTop: '',
+        kuncunAlert: '',
+        scroll: '',
+        showNext: false
+      }
+    },
+    mounted(){
+      let _this=this
+//      _this.menu()
+      _this.getCarList()
+//      _this.mountedTop()
+//      window.addEventListener('scroll', this.menu)
+
+    },
+
+    methods:{
+//      menu() {
+//          let _this=this
+//        _this.scroll = document.body.scrollTop;
+//        _this.$nextTick(()=>{
+//            setTimeout(function(){
+//              let orderCarFooter=_this.$refs.orderCarFooter
+//              if (orderCarFooter){
+//                  let aa=orderCarFooter.offsetTop
+//                if (orderCarFooter.offsetTop>=window.screen.height-80){
+//                  _this.showNext=true
+//                }
+////                let juli=orderCarFooter.offsetTop-window.screen.height+200
+////                if (_this.scroll>=juli){
+////                  _this.showNext=false
+////                }
+//              }
+//
+//            },500)
+//          })
+////        if (this.scroll>=window.screen.height){
+////           alert('1')
+////        }
+//      },
+      //        回首页
+      backtop:function(){
+        document.body.scrollTop=0;
+      },
+      //  点击全选
+      allSelected () {
+        this.isAllSelected = !this.isAllSelected
+        this.carList.forEach((e, i) => {
+          if (e.isValid){
+            e.select = this.isAllSelected ? 1 : 0
+            this.allSelectedGoods[i] = this.isAllSelected
+          }
+        })
+      },
+//      关闭警告提示框
+      closeAlert:function(){
+        this.isShowCover=false
+        this.showAlert=false
+      },
+//      获取采购单列表
+      getCarList:function(){
+        let _this = this
+        if (window.localStorage.getItem('loginCode')){
+          let loginCode=window.localStorage.getItem('loginCode')
+          let url = HOST_HDPCAR + '/shopcar/list';
+          //添加header start
+          Vue.http.interceptors.push((request, next)  =>{
+            request.headers.set('loginCode', loginCode);
+            next((response) => {
+              return response
+            });
+          });
+          //添加header end
+          _this.$resource(url).get({pageNum:1,version:"v1.2"}).then((response) => {
+            if (response.status == 200&&response.body.respBody) {
+              _this.carList=response.body.respBody.list
+              if (_this.carList.length ==0){
+                _this.showNullCar=true
+                _this.showCar=false
+                _this.listLengthPC=0
+              }else{
+                _this.listLengthPC=0
+                for(let i=0;i<_this.carList.length;i++){
+                  _this.$set( _this.carList[i],'select', 0);
+                  _this.$set(_this.carList[i],'addCount', _this.carList[i].goodsNum)
+                  _this.carList[i].totalPrice = _this.carList[i].totalPrice.toFixed(2);
+                  _this.listLengthPC += parseInt(_this.carList[i].goodsNum)
+                }
+                _this.showCar=true
+                _this.showNullCar=false
+              }
+            }
+          })
+        }else{
+          let domain_cas="http://checkin.99114.com"
+          let _ur = "http://hdp.99114.com"
+          window.location.href = domain_cas + "/login?source=1&service=" + encodeURIComponent(_ur);
+        }
+      },
+      //  点击去采购
+      goBugGoods () {
+        window.location.href = window.location.href.substring(0, window.location.href.lastIndexOf('/') + 1)
+      },
+      //  点击选中商品
+      goodsSelected (index) {
+        if (this.carList[index].isValid == true){
+          if (this.carList[index].select != 0){
+            this.carList[index].select = 0
+            this.isAllSelected = false
+            this.allSelectedGoods[index] = false
+          }else{
+            this.carList[index].select = 1
+            // 将索引值以对象的形式保存一下
+            this.allSelectedGoods[index] = true
+          }
+        }else{
+          let _this = this
+          _this.kuncunAlert = '此商品已下架！'
+          _this.showNoSettlement = true
+          setTimeout(function () {
+            _this.showNoSettlement = false
+          }, 2000)
+        }
+      },
+//      失去焦点
+      test:function(event,index){
+
+        if (this.carList[index].addCount==''||this.carList[index].addCount==0){
+          this.carList[index].addCount=1
+        }else{
+          this.carList[index].addCount=parseInt(this.carList[index].addCount)
+          let evt=event||window.event;
+          let  mak = evt.target || evt.srcElement;
+          if (this.carList[index].addCount!=''){
+            this.carList[index].addCount=parseInt(this.carList[index].addCount)
+            if ( parseInt(this.carList[index].addCount)>= parseInt(this.carList[index].goodsTotalNum)){
+              let _this=this
+              _this.kuncunAlert='最多可购买数量'+this.carList[index].goodsTotalNum
+              _this.showNoSettlement=true
+              _this.carList[index].addCount=_this.carList[index].goodsTotalNum
+              setTimeout(function(){
+                _this.showNoSettlement=false
+              },2000)
+            }
+            else if (parseInt(this.carList[index].addCount)==0){
+              let _this=this
+              _this.kuncunAlert='最少要购买一件哦~'
+              _this.showNoSettlement=true
+              _this.carList[index].addCount=1
+              setTimeout(function(){
+                _this.showNoSettlement=false
+              },2000)
+            }
+            else{
+              this.carList[index].totalPrice=this.carList[index].addCount*this.carList[index].price
+              this.carList[index].totalPrice= this.carList[index].totalPrice.toFixed(2);
+              this.carList[index].addCount=parseInt(mak.value)
+//              请求数据更新接口
+              let url = HOST_HDPCAR + "/updateGoodsNum?goodsId="+this.carList[index].goodsId+"&goodsSpec="+this.carList[index].goodsSpec+"&goodsNum="+ this.carList[index].addCount;
+              this.loginCode= window.localStorage.getItem('loginCode')
+              //添加header
+              Vue.http.interceptors.push((request, next)  =>{
+                request.headers.set('loginCode', this.loginCode);
+                next((response) => {
+                  return response
+                });
+              });
+              //添加header
+              this.$http.put(url).then((response) => {
+                if (response.status == 200) {
+
+                }
+              })
+            }
+          }
+        }
+
+      },
+//      更新产品数量
+      updateGoodsNum:function(index){
+        let url = HOST_HDPCAR + "/updateGoodsNum?goodsId="+this.carList[index].goodsId+"&goodsSpec="+this.carList[index].goodsSpec+"&goodsNum="+ this.carList[index].addCount;
+        this.loginCode= window.localStorage.getItem('loginCode')
+        //添加header
+        Vue.http.interceptors.push((request, next)  =>{
+          request.headers.set('loginCode', this.loginCode);
+          next((response) => {
+            return response
+          });
+        });
+        //添加header
+        this.$http.put(url).then((response) => {
+          if (response.status == 200) {
+
+          }
+        })
+      },
+//      点击增加商品数量
+      goodsJia:function(index){
+        if ( parseInt(this.carList[index].addCount)>= parseInt(this.carList[index].goodsTotalNum)){
+          let _this=this
+          _this.carList[index].addCount=_this.carList[index].goodsTotalNum
+          _this.kuncunAlert='最多可购买数量'+this.carList[index].goodsTotalNum
+          _this.showNoSettlement=true
+          setTimeout(function(){
+            _this.showNoSettlement=false
+          },2000)
+        }else{
+          this.carList[index].addCount++
+          // this.carList[index].goodsNum++
+          this.carList[index].totalPrice=this.carList[index].addCount*this.carList[index].price
+          this.carList[index].totalPrice= this.carList[index].totalPrice.toFixed(2);
+          this.updateGoodsNum(index)
+        }
+
+
+      },
+//      点击减少商品数量
+      goodsJian:function(index){
+        let _this=this
+        if(parseInt( _this.carList[index].addCount)>1){
+          this.carList[index].addCount--
+          // this.carList[index].goodsNum--
+          this.carList[index].totalPrice=this.carList[index].addCount*this.carList[index].price
+          this.carList[index].totalPrice= this.carList[index].totalPrice.toFixed(2);
+          this.updateGoodsNum(index)
+        }else{
+          let _this=this
+          _this.kuncunAlert='最少要购买一件哦~'
+          _this.showNoSettlement=true
+          setTimeout(function(){
+            _this.showNoSettlement=false
+          },2000)
+        }
+      },
+//      点击去结算
+      toSettlement:function(){
+        // let loginCode=window.localStorage.getItem('loginCode')
+        // let userId=window.localStorage.getItem('userId')
+        
+        var goods = []
+        for (var k in this.allSelectedGoods) {
+          if (this.allSelectedGoods[k]) {
+            let good0 = {
+              costItem: 0,
+              exhibitionId: 0,
+              exhibitionName: '',
+              id: this.carList[k].id,
+              imgUrl: this.carList[k].imagePath,
+              originPdPrice: this.carList[k].price,
+              packageId: 0,
+              pdBn: 0,
+              pdId: this.carList[k].goodsId,
+              pdName: this.carList[k].goodsName,
+              pdPrice: this.carList[k].price,
+              pdQuantity: this.carList[k].addCount,
+              pdSpce: this.carList[k].goodsSpec,
+              pdUnit: this.carList[k].unit,
+              refundStatue: 0,
+              refundType: 0,
+              version: 'v1.2'
+            }
+            goods.push(good0)
+          }
+        }
+        
+        if(goods.length === 0){
+          alert_msg('请勾选您要结算的宝贝')
+          return 
+        }
+        api_post({
+          url: HOST_ORDERS + '/order/front/addPreOrder',
+          data: goods,
+          done: function(res){
+            let key = {key: res.entity}
+            location.href = HR+'/receiveMsg?' + url_stringfy(key)
+          }
+        })
+
+        // 弹出二维码去手机端结算
+        // let _this=this
+        // let test=0
+        // for(let i=0;i<_this.carList.length;i++){
+        //   if (_this.carList[i].select==1){
+        //     test = 1
+        //     break
+        //   }
+        // }
+        // if (test==0){
+        //   _this.kuncunAlert='请勾选您要结算的宝贝'
+        //   _this.showNoSettlement=true
+
+        //   setTimeout(function(){
+        //     _this.showNoSettlement=false
+        //   },3000)
+        // }else{
+        //   _this.isShowCover=true
+        //   _this.ShowJieSuanMa=true
+        //   _this.$nextTick(()=>{
+        //     $("#qrcode2").qrcode({
+        //       width:230,
+        //       height:230,
+        //       text:"http://m.haodanpin.com/#/shopping?shoppingBack=001&logincodepc="+loginCode+'&userId='+userId
+        //     })
+        //   })
+        // }
+      },
+//      点击结算二维码关闭icon
+      closeJieSuan:function(){
+        this.isShowCover=false
+        this.ShowJieSuanMa=false
+      },
+//      删除某个商品
+      deletedGoods:function(index){
+        let url = HOST_HDPCAR + '/deleteGoods/'+this.carList[index].id;
+        this.$resource(url).delete({}).then((response) => {
+          if (response.status == 200) {
+            let _this=this
+            setTimeout(function(){
+              if (_this.isAllSelected==true&&_this.carList!=''){
+                for(let i=0;i<_this.carList.length;i++){
+                  _this.carList[i].select=1
+                }
+              }
+            },400)
+            _this.getCarList();
+          }
+        })
+      },
+//      点击底部删除
+      deletedBottom:function(){
+        let _this=this
+        let test=0
+        _this.isShowCover=true;
+        for(let i=0;i<_this.carList.length;i++){
+          if (_this.carList[i].select!=0){
+            test = 1
+            break
+          }
+        }
+        if ( test == 1){
+          _this.showDeteleSure=true
+          _this.showAlert=false;
+        }else{
+          _this.showAlert=true;
+          _this.showDeteleSure=false
+        }
+      },
+//      点击确认删除弹框取消按钮
+      deteleCancel:function(){
+        this.showDeteleSure=false
+        this.isShowCover=false;
+      },
+//       点击确认删除弹框确认按钮
+      deteleSure:function(){
+        //当所选择删除的商品为1个时
+        if (this.allSelectedGoods.length==1&&this.allSelectedGoods.length!=0){
+          let url = HOST_HDPCAR + '/deleteGoods/'+this.allSelectedGoods[0].id;
+          this.$resource(url).delete({}).then((response) => {
+            if (response.status == 200) {
+              this.getCarList();
+            }
+          })
+        }else{
+          for(let i=0;i<this.allSelectedGoods.length;i++){
+            this.urlToal+=this.allSelectedGoods[i].id+','
+          }
+          let url = HOST_HDPCAR + '/deleteGoodsList/'+ this.urlToal
+          this.$resource(url).delete({}).then((response) => {
+            if (response.status == 200) {
+              this.getCarList();
+            }
+          })
+        }
+        this.showDeteleSure=false
+        this.isShowCover=false;
+      },
+    },
+
+    computed:{
+      //      计算购物车里有多少件商品
+      totalGoods:function(){
+        let sum=0
+        for(let i=0;i<this.carList.length;i++){
+          if (this.carList[i].select==1&&this.carList[i].addCount!=''){
+            sum += parseInt(this.carList[i].addCount)
+          }
+        }
+        return sum
+      },
+//     计算购物车总价钱
+      totalCarPrice:function(){
+        let sum2=0
+        for(let i=0;i<this.carList.length;i++){
+          if (this.carList[i].select==1&&this.carList[i].addCount!=''){
+            sum2 +=  parseInt(this.carList[i].addCount)*this.carList[i].price
+          }
+        }
+        sum2 = sum2.toFixed(2);
+        return sum2
+      }
+    },
+    components:{
+      hdpTop,
+      hdpFooter,
+      searchAll,
+      hdpFootersub
+    }
+  }
+</script>
+<style>
+  #qrcode2 canvas {
+    margin-top: 58px;
+    margin-left: 2px;
+  }
+</style>
+<style scoped>
+  .backtop {
+    position: fixed;
+    width: 55px;
+    height: 81px;
+    background: url(../../assets/images/img/top.png);
+    right:20px;
+    bottom: 170px;
+    z-index: 100;
+    cursor:pointer ;
+  }
+  .shop-car-pc{
+    width:100%;
+  }
+  .shop-car-devide{
+    width:100%;
+    border-top:1px solid #a8b1db;
+    margin-top:18px;
+  }
+  .null_car{
+    width:1188px;
+    margin-left:auto;
+    margin-right:auto;
+    height:448px;
+    border:1px solid #d6d6d6;
+    margin-top:20px;
+    font-size: 0;
+    font-family: Microsoft YaHei;
+  }
+  .null_car_img{
+    display: block;
+    width:53px;
+    height:50px;
+    margin-top:125px;
+    margin-left:auto;
+    margin-right:auto;
+  }
+  .null_car_words{
+    width:100%;
+    font-size: 16px;
+    text-align: center;
+    margin-top:20px;
+    color:#a39d9b;
+  }
+  .gosell{
+    width:100px;
+    height:40px;
+    border-radius: 6px;
+    margin-top:30px;
+    background:#a8b1db;
+    font-size:14px;
+    color:#fff;
+    margin-left:auto;
+    margin-right:auto;
+    line-height: 40px;
+    cursor: pointer;
+    font-weight: bold;
+    letter-spacing: 1px;
+
+  }
+  .shop-car-devide-bottom{
+    width:100%;
+    border-top:1px solid #d6d6d6;
+    margin-top:152px;
+  }
+  .order_car_box{
+    width:1190px;
+    margin-left:auto;
+    margin-right:auto;
+    margin-top:20px;
+    font-size:0;
+    font-family: Microsoft YaHei;
+  }
+  .order_car_header{
+    width:1188px;
+    height:48px;
+    background:#f4f4f4;
+    border:1px solid #d6d6d6;
+  }
+  .order_car_header  div{
+    float: left;
+  }
+  .header-selected{
+    width:16px;
+    height:16px;
+    border:1px solid #d6d6d6;
+    margin-top:15px;
+    margin-left:22px;
+    cursor: pointer;
+  }
+  .allwords{
+    font-size:12px;
+    margin-top:15px;
+    color:#6c615c;
+    margin-left:20px;
+  }
+  .header-goods-words{
+    font-size:12px;
+    margin-top:15px;
+    margin-left:96px;
+  }
+  .header-singer{
+    font-size:12px;
+    margin-left:305px;
+    margin-top:15px;
+  }
+  .header-count{
+    font-size:12px;
+    margin-top:15px;
+    margin-left:170px;
+  }
+  .car_goods_box{
+    width:1188px;
+    height:128px;
+    border:1px solid #d6d6d6;
+    margin-top:20px;
+    position: relative;
+  }
+  .car_goods_box div{
+    float: left;
+    font-size:14px;
+  }
+  .goods_selected{
+    width:16px;
+    height:16px;
+    border:1px solid #d6d6d6;
+    margin-top:56px;
+    margin-left:22px;
+    cursor: pointer;
+  }
+  .goods_img{
+    float: left;
+    width:78px;
+    height:78px;
+    border:1px solid #d6d6d6;
+    margin-top:25px;
+    margin-left:19px;
+  }
+  .goods_msg{
+    width:264px;
+    height:100%;
+    margin-left:34px;
+    text-align: left;
+  }
+  .goods_msg_words{
+    width:100%;
+    height:40px;
+    margin-top:32px;
+    overflow: hidden;
+
+  }
+  .goods_guige{
+    width:100%;
+    margin-top:10px;
+    color:#b2b2b2;
+    overflow: hidden;
+    text-overflow:ellipsis;
+    white-space: nowrap;
+  }
+  .goods_price{
+    font-weight: bold;
+    margin-top:60px;
+    margin-left:95px;
+  }
+
+  .car_goods_box .count-change{
+    position:absolute;
+    top:52px;
+    left:680px;
+    font-size:0;
+    height:28px;
+    border-top:1px solid #d6d6d6;
+    border-bottom:1px solid #d6d6d6;
+  }
+  .car_goods_box .count-jian{
+    width:29px;
+    height:100%;
+    border-left:1px solid #d6d6d6;
+    font-size: 22px;
+    text-align: center;
+    line-height: 29px;
+    color: #d6d6d6;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .all-count{
+    width:58px;
+    height:100%;
+    line-height: 29px;
+    text-align: center;
+    border-left:1px solid #d6d6d6;
+    border-right:1px solid #d6d6d6;
+    float: left;
+    outline: none;
+  }
+  .car_goods_box  .count-jia{
+    width:29px;
+    height:100%;
+    border-right:1px solid #d6d6d6;
+    font-size: 16px;
+    text-align: center;
+    line-height: 29px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .car_goods_box .all-money{
+    position:absolute;
+    left:800px;
+  }
+
+  .all-money{
+    margin-left:120px;
+    font-size:16px;
+    font-weight: bold;
+    color:#cc141c;
+    height:100%;
+    line-height:130px;
+  }
+  .detele-goods{
+    width:12px;
+    height:12px;
+    position:absolute;
+    top:61px;
+    right:40px;
+    background:url("../../assets/images/img/close-pc.png") no-repeat;
+    cursor: pointer;
+  }
+  .order_car_footer{
+    width:1188px;
+    height:64px;
+    margin-top:10px;
+    background:#f4f4f4;
+    border:1px solid #d6d6d6;
+    position:relative;
+  }
+  .order_car_footer div{
+    float: left;
+  }
+  .footer-selected{
+    width:16px;
+    height:16px;
+    border:1px solid #d6d6d6;
+    margin-top:23px;
+    margin-left:20px;
+    cursor: pointer;
+  }
+  .footer-allwords{
+    font-size: 14px;
+    margin-top:24px;
+    margin-left:20px;
+    cursor: pointer;
+  }
+  .footer-deleted{
+    font-size: 14px;
+    margin-top:24px;
+    margin-left:28px;
+    cursor: pointer;
+  }
+  .footer-haved{
+    margin-left:490px;
+    height:100%;
+    font-size: 0;
+    line-height: 64px;
+  }
+  .footer-haved-wodrs{
+    font-size:14px;
+  }
+  .footer-haved-count{
+    font-size: 18px;
+    color:#cc141c;
+    font-weight: bold;
+    margin-left:6px;
+    margin-right:6px;
+  }
+  .footer-total{
+    height:100%;
+    line-height:64px;
+    margin-left:35px;
+    font-size:14px;
+    font-weight: bold;
+  }
+  .footer-total-money{
+    margin-left:19px;
+    color:#cc141c;
+    font-size: 24px;
+    height:100%;
+    line-height: 64px;
+  }
+  .order_car_footer .footer-settlement{
+    height:65px;
+    width:140px;
+    background:#6878c6;
+    position:absolute;
+    top:-1px;
+    right:0;
+    color:#fff;
+    font-size:18px;
+    line-height: 65px;
+    letter-spacing: 1px;
+    cursor: pointer;
+  }
+  .shop-car-cover{
+    position: fixed;
+    top:0;
+    left:0;
+    right:0;
+    bottom:0;
+    z-index: 100;
+    background:#000;
+    opacity: 0.5;
+  }
+  .no-settlement-goods{
+    position:fixed;
+    z-index: 101;
+    width:310px;
+    height:100px;
+    line-height:100px;
+    color:#fff;
+    text-align: center;
+    background:#000;
+    opacity: 0.75;
+    top:calc(50% - 160px);
+    left:calc(50% - 155px);
+    border-radius: 5px;
+    font-size: 14px;
+    font-family: Microsoft YaHei;
+  }
+  .massge-alert{
+    width:318px;
+    height:108px;
+    position:fixed;
+    z-index: 101;
+    top:calc(50% - 54px);
+    left:calc(50% - 159px);
+    border:2px solid #a8b1db;
+    border-radius: 5px;
+  }
+  .massge-alert .massge-alert-body{
+    width:310px;
+    height:100px;
+    background:#fff;
+    margin-left:4px;
+    margin-top:4px;
+    border-radius: 5px;
+    position: relative;
+    font-family: Microsoft YaHei;
+    font-size: 0;
+  }
+  .alert-logo{
+    position:absolute;
+    top:15px;
+    left:25px;
+  }
+  .alert-close{
+    position:absolute;
+    top:20px;
+    right:20px;
+    cursor: pointer;
+  }
+  .alert-words{
+    position:absolute;
+    left:75px;
+    top:20px;
+    text-align: left;
+  }
+  .alert-words-top{
+    font-size:16px;
+    font-weight: bold;
+  }
+  .slert-words-bottom{
+    font-size:12px;
+    margin-top:26px;
+  }
+  .detele-sure{
+    width:430px;
+    height:270px;
+    position:fixed;
+    top:calc(50% - 135px);
+    left:calc(50% - 215px);
+    z-index: 101;
+    background: #fff;
+    border:5px solid #8f92a3;
+    font-family: Microsoft YaHei;
+
+  }
+  .sure-words{
+    width:100%;
+    font-size:20px;
+    text-align: center;
+    margin-top:77px;
+  }
+  .detele-sure-btn{
+    width:140px;
+    height:44px;
+    background:#a8b1db;
+    border-radius: 2px;
+    position:absolute;
+    top:156px;
+    left:62px;
+    font-size:16px;
+    color:#ffffff;
+    letter-spacing: 1px;
+    line-height: 44px;
+    cursor: pointer;
+  }
+  .detele-sure-btn:hover{
+    background: #b5bde0;
+  }
+  .detele-cancel-btn{
+    width:138px;
+    height:42px;
+    background:#f5f5f5;
+    border-radius: 2px;
+    position:absolute;
+    font-size:16px;
+    letter-spacing: 1px;
+    line-height: 44px;
+    cursor: pointer;
+    border:1px solid #d6d6d6;
+    top:155px;
+    right:55px;
+  }
+  .detele-cancel-btn:hover{
+    background:#fff;
+  }
+  /*二维码样式start*/
+  .bug-alert-box{
+    width:367px;
+    height:494px;
+    background:#fff;
+    position:fixed;
+    top:calc(50% - 248px);
+    top:-webkit-calc(50% - 248px);
+    left:calc(50% - 184px);
+    left:-webkit-calc(50% - 184px);
+    z-index: 101;
+    /*border:2px solid #8c8fa0;*/
+    box-shadow:1px 1px 2px 2px #8c8fa0
+  }
+  .alert-box-header{
+    width:100%;
+    height:50px;
+    background:#a8b1db;
+    font-size:20px;
+    color:#fff;
+    line-height:50px;
+  }
+  .close-icon{
+    position: absolute;
+    width:18px;
+    height:18px;
+    z-index: 5;
+    right:13px;
+    top:16px;
+    cursor: pointer;
+  }
+  .words-tishi{
+    width:100%;
+    font-size:20px;
+    color:#333;
+    margin-top:20px;
+  }
+
+  /*二维码样式end*/
+  .jie-suan-active{
+    position: fixed;
+    bottom:0;
+    left:calc(50% - 595px);
+    z-index: 1000;
+  }
+
+  /*添加购物车订单失效*/
+  .is_valid_bg{
+    width: 78px;
+    height: 78px;
+    background:#fff;
+    opacity: 0.6;
+    position:absolute;
+    top:25px;
+    left:57px;
+    z-index: 100;
+
+  }
+  .is_valid_words{
+    width:44px;
+    height:20px;
+    background:#adadad;
+    color:#fff;
+    line-height:20px;
+    font-size:12px;
+    position:absolute;
+    letter-spacing: 1px;
+    top:0;
+    right:0;
+  }
+</style>
