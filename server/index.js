@@ -1,6 +1,6 @@
 import express from 'express'
 import { Nuxt, Builder } from 'nuxt'
-var cookieParser = require('cookie-parser');
+// var cookieParser = require('cookie-parser');
 import axios from 'axios'
 import * as HOST from '../assets/js/config_server.js'
 // var redis = require("redis")
@@ -40,7 +40,7 @@ const app = express()
 
 
 
-const host = process.env.HOST || '127.0.0.1'
+const host = process.env.HOST || '0.0.0.0'
 // const host = '192.168.1.165'
 const port = process.env.PORT || 3000
 
@@ -48,29 +48,29 @@ app.set('port', port)
 
 // Import API Routes
 app.use('/api', api)
-app.use(cookieParser());
+// app.use(cookieParser());
 // app.use(expressSession());
 // app.use(cookieSession());
 
-app.get('/setloginCode',function(req,res){
-	// var SSONAME = req.cookies.SSONAME||'a';
-	// var SSONAME = req.cookies;
-	// var session = req.session;
-	var session = req.headers;
-	var cookies = req.query;
-	// console.log(req.cookies)
-	SSONAME = req.query.SSONAME||''
-	MEMBERTGC = req.query.MEMBERTGC||''
-	// var SSONAME = req.session.SSONAME;
-	// var SSONAME = req.signedCookies.SSONAME;
-	// var SSONAME = {a:'a'};
-  // res.json({data:SSONAME,session:session})
- //  	client.hmset('cookies', { SSONAME: SSONAME, MEMBERTGC: MEMBERTGC }, function(err) {
-	//   console.log(err)
-	// })
-  res.json({data:session,cookies:cookies})
-  // res.json({data:'o'})
-})
+// app.get('/setloginCode',function(req,res){
+// 	// var SSONAME = req.cookies.SSONAME||'a';
+// 	// var SSONAME = req.cookies;
+// 	// var session = req.session;
+// 	var session = req.headers;
+// 	var cookies = req.query;
+// 	// console.log(req.cookies)
+// 	SSONAME = req.query.SSONAME||''
+// 	MEMBERTGC = req.query.MEMBERTGC||''
+// 	// var SSONAME = req.session.SSONAME;
+// 	// var SSONAME = req.signedCookies.SSONAME;
+// 	// var SSONAME = {a:'a'};
+//   // res.json({data:SSONAME,session:session})
+//  //  	client.hmset('cookies', { SSONAME: SSONAME, MEMBERTGC: MEMBERTGC }, function(err) {
+// 	//   console.log(err)
+// 	// })
+//   res.json({data:session,cookies:cookies})
+//   // res.json({data:'o'})
+// })
 
 
 // Import and Set Nuxt.js options
