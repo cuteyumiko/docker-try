@@ -1,28 +1,13 @@
+## docker build -t image-name .
 
 
-# 安装方法
-
-```
-npm install
-npm install -g nuxtjs
-npm install -g backpack-core
-```
-
-# 开发
-
-```
-npm run dev
-```
-
-# 部署
-```
-nuxt build
-nuxt start
-```
 
 
-For detailed explanation on how things work, checkout the [Nuxt.js docs](https://github.com/nuxt/nuxt.js).
+## docker run -dt -p 6543:3000 --name container-name image-name
 
-## Backpack
 
-We use [backpack](https://github.com/palmerhq/backpack) to watch and build the application, so you can use the latest ES6 features (module syntax, async/await, etc.).
+
+
+docker commit image-id
+docker export container-id > fileName.tar
+docker import fileName.tar 
